@@ -1,6 +1,7 @@
 package com.rss.pinkbike.activities;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Window;
 import android.webkit.WebSettings;
@@ -24,9 +25,14 @@ public class WebViewActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         WebView webView = (WebView) findViewById(R.id.webView);
         webView.loadUrl(getIntent().getStringExtra("link"));
+    }
+
+    @Override
+    protected void onResume() {
         super.onResume();
     }
 }

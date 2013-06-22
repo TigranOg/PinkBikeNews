@@ -6,12 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Toast;
 import com.rss.pinkbike.R;
@@ -74,9 +76,8 @@ public class MainActivity extends ListActivity {
 
                 dataSource.close();
 
-                Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
-                intent.putExtra("link", link);
-                startActivity(intent);
+                Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
+                startActivity(myIntent);
             }
         });
 
