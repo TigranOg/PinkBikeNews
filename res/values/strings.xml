@@ -5,5 +5,5 @@
     <string name="pull_to_refresh_release_label">Release to refresh…</string>
     <string name="pull_to_refresh_refreshing_label">Loading…</string>
     <string name="pull_to_refresh_tap_label">Tap to refresh…</string>
-    <string name="empty_view_text">This is the empty view</string>
+    <string name="empty_view_text">Loading… please wait</string>
 </resources>

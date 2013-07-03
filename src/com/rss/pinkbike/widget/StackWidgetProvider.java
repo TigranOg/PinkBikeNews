@@ -1,14 +1,22 @@
 package com.rss.pinkbike.widget;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 import com.rss.pinkbike.R;
+import com.rss.pinkbike.db.RssDataSource;
+import com.rss.pinkbike.util.ApplicationManager;
+
+import java.sql.SQLException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,8 +25,11 @@ import com.rss.pinkbike.R;
  * Time: 2:51 PM
  */
 public class StackWidgetProvider extends AppWidgetProvider {
-    public static final String TOAST_ACTION = "com.example.android.stackwidget.TOAST_ACTION";
-    public static final String EXTRA_ITEM = "com.example.android.stackwidget.EXTRA_ITEM";
+    public static final String TOUCH_ACTION = "com.rss.pinkbike.TOUCH_ACTION";
+    public static final String EXTRA_ITEM_LINK = "com.rss.pinkbike.EXTRA_ITEM_LINK";
+    public static final String EXTRA_ITEM_POSITION = "com.rss.pinkbike.EXTRA_ITEM_POSITION";
+    public static final String EXTRA_ITEM_STATE = "com.rss.pinkbike.EXTRA_ITEM_STATE";
+
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
@@ -35,18 +46,45 @@ public class StackWidgetProvider extends AppWidgetProvider {
         super.onEnabled(context);
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void onReceive(Context context, Intent intent) {
         AppWidgetManager mgr = AppWidgetManager.getInstance(context);
-        if (intent.getAction().equals(TOAST_ACTION)) {
+        if (intent.getAction().equals(TOUCH_ACTION)) {
             int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                     AppWidgetManager.INVALID_APPWIDGET_ID);
-            int viewIndex = intent.getIntExtra(EXTRA_ITEM, 0);
-            Toast.makeText(context, "Touched view " + viewIndex, Toast.LENGTH_SHORT).show();
+
+            String link = intent.getStringExtra(EXTRA_ITEM_LINK);
+            int position = intent.getIntExtra(EXTRA_ITEM_POSITION, 0);
+            boolean state = intent.getBooleanExtra(EXTRA_ITEM_STATE, false);
+
+
+            if (!state) {
+                ApplicationManager.getInstance().getMapToShow().get(Integer.valueOf(position)).setState(1);
+                RssDataSource dataSource =  new RssDataSource(context);
+
+                try {
+                    dataSource.open();
+                    dataSource.updateRssStateByLink(link);
+
+                } catch (SQLException e) {
+                    Log.e("pinkbike", "list.setOnItemClickListener() SQLException ERROR");
+                }
+
+                dataSource.close();
+            }
+
+            Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(myIntent);
+
+            if (mgr != null) {
+                mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.stack_view);
+            }
         }
         super.onReceive(context, intent);
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // update each of the widgets with the remote adapter
@@ -70,11 +108,11 @@ public class StackWidgetProvider extends AppWidgetProvider {
             // cannot setup their own pending intents, instead, the collection as a whole can
             // setup a pending intent template, and the individual items can set a fillInIntent
             // to create unique before on an item to item basis.
-            Intent toastIntent = new Intent(context, StackWidgetProvider.class);
-            toastIntent.setAction(StackWidgetProvider.TOAST_ACTION);
-            toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+            Intent touchIntent = new Intent(context, StackWidgetProvider.class);
+            touchIntent.setAction(StackWidgetProvider.TOUCH_ACTION);
+            touchIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
             intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-            PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+            PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, touchIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             rv.setPendingIntentTemplate(R.id.stack_view, toastPendingIntent);
 

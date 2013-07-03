@@ -48,6 +48,8 @@ public class RssDataSource {
 
     public Map<String, RssEntity> getAllRss() {
         Map<String, RssEntity> rssEntityMap = new HashMap<String, RssEntity>();
+        long currTime = new Date().getTime();
+        long week = 7*24*60*60*1000;
 
         Cursor cursor = database.query(MySQLiteHelper.TABLE_NAME,
                 allColumns, null, null, null, null, null);
@@ -56,6 +58,12 @@ public class RssDataSource {
 
         while (!cursor.isAfterLast()) {
             RssEntity rssEntity = cursorToUser(cursor);
+            //TODO check if entity old then delete
+            /*if (currTime - rssEntity.getPubDate().getTime() >= week) {
+
+            } else {
+
+            }*/
             rssEntityMap.put(rssEntity.getLink(), rssEntity);
             cursor.moveToNext();
         }
@@ -74,7 +82,7 @@ public class RssDataSource {
     public List<RssEntity> getTop20Rss() {
         List<RssEntity> rssEntityMap = new ArrayList<RssEntity>();
 
-        Cursor cursor = database.rawQuery("SELECT * FROM " + MySQLiteHelper.TABLE_NAME + " LIMIT 20;", null);
+        Cursor cursor = database.rawQuery("SELECT * FROM " + MySQLiteHelper.TABLE_NAME + " ORDER BY " + MySQLiteHelper.COLUMN_POSITION + " DESC LIMIT 20;", null);
 
         cursor.moveToFirst();
 

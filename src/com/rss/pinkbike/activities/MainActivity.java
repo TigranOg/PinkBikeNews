@@ -2,6 +2,7 @@ package com.rss.pinkbike.activities;
 
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.WebView;
 import android.widget.AdapterView;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 import com.rss.pinkbike.R;
 import com.rss.pinkbike.entities.RssEntity;
@@ -65,16 +67,30 @@ public class MainActivity extends ListActivity {
                 String link = tag.split("#666#")[0];
                 String pos = tag.split("#666#")[1];
 
-                ApplicationManager.getInstance().getMapToShow().get(Integer.valueOf(pos)).setState(1);
-                try {
-                    dataSource.open();
-                    dataSource.updateRssStateByLink(link);
+                RssEntity rss = ApplicationManager.getInstance().getMapToShow().get(Integer.valueOf(pos));
 
-                } catch (SQLException e) {
-                    Log.e("pinkbike", "list.setOnItemClickListener() SQLException ERROR");
+                if (!rss.getStateAsBoolean()) {
+                    ApplicationManager.getInstance().getMapToShow().get(Integer.valueOf(pos)).setState(1);
+                    try {
+                        dataSource.open();
+                        dataSource.updateRssStateByLink(link);
+
+                    } catch (SQLException e) {
+                        Log.e("pinkbike", "list.setOnItemClickListener() SQLException ERROR");
+                    }
+
+                    dataSource.close();
+
+                    //TODO update widgets
+                    AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                    int appWidgetId = getIntent().getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                                AppWidgetManager.INVALID_APPWIDGET_ID);
+                    RemoteViews views = new RemoteViews(context.getPackageName(),
+                            R.id.stack_view);
+                    if (appWidgetManager != null) {
+                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                    }
                 }
-
-                dataSource.close();
 
                 Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
                 startActivity(myIntent);
@@ -114,7 +130,7 @@ public class MainActivity extends ListActivity {
 
             long currTime = new Date().getTime();
 
-            if(ApplicationManager.getInstance().isNeedToUpdate() || (currTime - ApplicationManager.getInstance().getStartTime() >= 15*60*1000)) {
+            if(ApplicationManager.getInstance().isNeedToUpdate() || (currTime - ApplicationManager.getInstance().getStartTime() >= 30*60*1000)) {
 
                 try {
                     dataSource.open();
