@@ -5,7 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.rss.pinkbike.entities.RssEntity;
+import com.rss.pinkbike.util.BitmapManager;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -59,12 +61,13 @@ public class RssDataSource {
         while (!cursor.isAfterLast()) {
             RssEntity rssEntity = cursorToUser(cursor);
             //TODO check if entity old then delete
-            /*if (currTime - rssEntity.getPubDate().getTime() >= week) {
 
+            if (currTime - rssEntity.getPubDate().getTime() >= week) {
+                deleteFile(rssEntity.getImgName());
+                deleteEntityByLink(rssEntity.getLink());
             } else {
-
-            }*/
-            rssEntityMap.put(rssEntity.getLink(), rssEntity);
+                rssEntityMap.put(rssEntity.getLink(), rssEntity);
+            }
             cursor.moveToNext();
         }
 
@@ -73,10 +76,31 @@ public class RssDataSource {
         return rssEntityMap;
     }
 
+    private boolean deleteFile(String fileName) {
+        File file = new File(BitmapManager.PATH + fileName);
+        return file.delete();
+    }
+
+    private void deleteEntityByLink(String link) {
+        database.delete(MySQLiteHelper.TABLE_NAME, MySQLiteHelper.COLUMN_LINK + " = " + "'" + link + "'", null);
+    }
+
     public void updateRssStateByLink(String link) {
         ContentValues values = new ContentValues();
         values.put(MySQLiteHelper.COLUMN_STATE, 1);
         database.update(MySQLiteHelper.TABLE_NAME, values, MySQLiteHelper.COLUMN_LINK + " = " + "'" + link + "'", null);
+    }
+
+    public int getMaxPosition() {
+        Cursor cursor = database.rawQuery("SELECT MAX(" +MySQLiteHelper.COLUMN_POSITION+") FROM " + MySQLiteHelper.TABLE_NAME, null);
+        int pos = 0;
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+           pos = cursor.getInt(0);
+        }
+
+        return pos;
     }
 
     public List<RssEntity> getTop20Rss() {

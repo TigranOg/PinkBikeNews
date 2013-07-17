@@ -135,11 +135,12 @@ public class MainActivity extends ListActivity {
                 try {
                     dataSource.open();
                     rssEntities = dataSource.getAllRss();
+                    int pos = dataSource.getMaxPosition();
 
                     Map<String, RssEntity> rssEntityMap = new HashMap<String, RssEntity>();
 
                     if (isOnline) {
-                        rssEntityMap = RssManager.getRssMap(rssEntities.size());
+                        rssEntityMap = RssManager.getRssMap(pos);
                     }
 
                     HashMap<Integer, RssEntity> mapToShow = new HashMap<Integer, RssEntity>();

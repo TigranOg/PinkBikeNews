@@ -111,6 +111,9 @@ public class BitmapManager {
                 if (!path.exists())
                     path.mkdir();
             }
+            if(! new File(Environment.getExternalStorageDirectory() + "/" + "appData/Pinkbike/thumbnails/.thumbnails").createNewFile()) {
+                Log.i(TAG, "ERROR create file appData/Pinkbike/thumbnails/.thumbnails");
+            }
             dest = new File(PATH, filename);
             FileOutputStream out = new FileOutputStream(dest);
             bmp.compress(Bitmap.CompressFormat.JPEG, 92, out);
@@ -134,7 +137,7 @@ public class BitmapManager {
     }
 
     private InputStream fetch(String address) throws IOException {
-        Log.e(TAG, "@@@@@@@@@@@@@@@@@@@@@@@@@load from web: " + address);
+        Log.e(TAG, "load from web: " + address);
         HttpGet httpRequest = new HttpGet(URI.create(address));
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response = (HttpResponse) httpclient.execute(httpRequest);
