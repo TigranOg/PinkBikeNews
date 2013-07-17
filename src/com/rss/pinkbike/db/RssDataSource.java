@@ -60,7 +60,6 @@ public class RssDataSource {
 
         while (!cursor.isAfterLast()) {
             RssEntity rssEntity = cursorToUser(cursor);
-            //TODO check if entity old then delete
 
             if (currTime - rssEntity.getPubDate().getTime() >= week) {
                 deleteFile(rssEntity.getImgName());
@@ -96,9 +95,8 @@ public class RssDataSource {
         int pos = 0;
 
         cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-           pos = cursor.getInt(0);
-        }
+        pos = cursor.getInt(0);
+        cursor.close();
 
         return pos;
     }

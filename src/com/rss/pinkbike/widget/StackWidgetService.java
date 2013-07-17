@@ -154,11 +154,12 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
         try {
             dataSource.open();
             Map<String, RssEntity> rssDbMap = dataSource.getAllRss();
+            int pos = dataSource.getMaxPosition();
 
             Map<String, RssEntity> rssWebMap = new HashMap<String, RssEntity>();
 
             if (isOnline) {
-                rssWebMap = RssManager.getRssMap(rssDbMap.size());
+                rssWebMap = RssManager.getRssMap(pos);
             }
 
             HashMap<Integer, RssEntity> mapToShow = new HashMap<Integer, RssEntity>();
